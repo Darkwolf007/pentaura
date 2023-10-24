@@ -4,7 +4,7 @@
     <title>pentaura</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link  rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="main.css">
     <style>
         body {
             background-color: #ccc;
@@ -18,9 +18,7 @@
 </head>
 
 <body>
-    <div id="info">
-        <!-- <a href="https://threejs.org" target="_blank" rel="noopener">Pentaura</a> -->
-    </div>
+    <div id="info"></div>
 
     <script type="importmap">
         {
@@ -37,6 +35,7 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
         let camera, controls, scene, renderer;
+        let model, model2;
 
         init();
         animate();
@@ -44,14 +43,18 @@
         function init() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xcccccc);
-            scene.fog = new THREE.FogExp2(0xcccccc, 0.001);
+            scene.fog = new THREE.FogExp2(0xcccccc, 0.0009);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+            // Set up shadow properties for the renderer
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadows for smoother rendering
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 4, 10000);
             camera.position.set(400, 200, 0);
 
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -60,6 +63,7 @@
             const dirLight = new THREE.DirectionalLight(0xefefff, 5);
             dirLight.position.set(10, 10, 10);
             dirLight.castShadow = true;
+
             // Set up shadow properties for the light
             dirLight.shadow.mapSize.width = 1024;
             dirLight.shadow.mapSize.height = 1024;
@@ -74,7 +78,6 @@
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.listenToKeyEvents(window);
-
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.screenSpacePanning = false;
@@ -84,39 +87,28 @@
 
             const loader = new GLTFLoader();
             loader.load('models/new_site.glb', (gltf) => {
-                const model = gltf.scene;
+                model = gltf.scene;
                 scene.add(model);
                 model.position.set(0, 0, 0);
-                model.scale.set(14, 14, 14);
+                model.scale.set(18, 18, 18);
                 model.rotation.set(0, 0, 0);
 
-                // Ensure the model receives shadows
-                model.traverse(function (node) {
-                    if (node.isMesh) {
-                        node.receiveShadow = true;
-                    }
-                });
+                // Make sure the model casts and receives shadows
+                model.castShadow = true;
+                model.receiveShadow = true;
             });
 
             loader.load('models/new_pent.glb', (gltf) => {
-                const model2 = gltf.scene;
+                model2 = gltf.scene;
                 scene.add(model2);
                 model2.position.set(0, 0, 0);
-                model2.scale.set(13, 13, 13);
+                model2.scale.set(17, 17, 17);
                 model2.rotation.set(0, 0, 0);
 
-                // Enable cast shadows for the model
-                model2.traverse(function (node) {
-                    if (node.isMesh) {
-                        node.castShadow = true;
-                    }
-                });
+                // Make sure the model casts and receives shadows
+                model2.castShadow = true;
+                model2.receiveShadow = true;
             });
-
-            renderer.outputEncoding = THREE.sRGBEncoding;
-            // Enable shadow mapping for the renderer
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
             window.addEventListener('resize', onWindowResize);
         }
